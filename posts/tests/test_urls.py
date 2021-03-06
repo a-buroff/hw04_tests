@@ -20,12 +20,10 @@ class PostUrlTests (TestCase):
         Post.objects.create(
             text='Тестовый пост залогиненного юзера',
             author=self.user_is_author,
-            pk=1
         )
         Post.objects.create(
             text='Тестовый пост тестового юзера',
             author=self.user_other,
-            pk=2
         )
 
     def test_urls_uses_correct_template(self):

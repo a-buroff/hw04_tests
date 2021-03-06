@@ -1,6 +1,7 @@
 from django.test import TestCase, Client
-from ..models import User, Post, Group
 from django.urls import reverse
+
+from ..models import User, Post, Group
 
 
 class PaginatorViewsTest(TestCase):
@@ -31,12 +32,12 @@ class PaginatorViewsTest(TestCase):
     def test_first_page_containse_ten_records(self):
         """На первой странице index должно быть 10 постов"""
         response = self.client.get(reverse('index'))
-        self.assertEqual(len(response.context.get('page').object_list), 10)
+        self.assertEqual(len(response.context['page'].object_list), 10)
 
     def test_second_page_containse_three_records(self):
         """На третей странице index должно быть 6 постов"""
         response = self.client.get(reverse('index') + '?page=3')
-        self.assertEqual(len(response.context.get('page').object_list), 6)
+        self.assertEqual(len(response.context['page'].object_list), 6)
 
     def test_first_group_page_containse_ten_records(self):
         """На первой странице группы должно быть 10 постов"""
@@ -44,11 +45,11 @@ class PaginatorViewsTest(TestCase):
         response = self.client.get(reverse(
             'group_posts', kwargs={'slug': 'test-slug'})
         )
-        self.assertEqual(len(response.context.get('page').object_list), 10)
+        self.assertEqual(len(response.context['page'].object_list), 10)
 
     def test_second_group_page_containse_three_records(self):
         """На второй странице группы должно быть 3 поста"""
         response = self.client.get(
             reverse('group_posts', kwargs={'slug': 'test-slug'}) + '?page=2'
         )
-        self.assertEqual(len(response.context.get('page').object_list), 3)
+        self.assertEqual(len(response.context['page'].object_list), 3)

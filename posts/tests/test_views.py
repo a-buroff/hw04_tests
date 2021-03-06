@@ -17,21 +17,18 @@ class PostPagesTests (TestCase):
             title='Тестовая группа', slug='test-slug',
             description='Описание тестовой группы',
         )
-        Post.objects.create(
+        cls.post1 = Post.objects.create(
             author=author,
             text='Тестовый пост stand-alone',
-            pk=0,
         )
-        Post.objects.create(
+        cls.post2 = Post.objects.create(
             author=author,
             group=group,
             text='Тестовый пост в тестовой группе',
-            pk=1,
         )
-        Post.objects.create(
+        cls.post3 = Post.objects.create(
             author=user_is_author,
             text='Тестовый пост юзера-автора',
-            pk=2,
         )
 
     def setUp(self):
@@ -54,48 +51,21 @@ class PostPagesTests (TestCase):
                 response = self.authorized_client.get(reverse_name)
                 self.assertTemplateUsed(response, template)
 
-    def to_remove(self):
-        """Шаблон index сформирован с правильным контекстом."""
-        response = self.authorized_client.get(reverse('index'))
-        posts_text_0 = response.context['page'][0].text
-        posts_author_0 = response.context['page'][0].author
-        # здесь должно получиться None
-        posts_group_0 = response.context['page'][0].group
-
-        posts_text_1 = response.context['page'][1].text
-        posts_author_1 = response.context['page'][1].author
-        posts_group_1 = response.context['page'][1].group
-
-        posts_text_2 = response.context['page'][1].text
-        posts_author_2 = response.context['page'][1].author
-        posts_group_2 = response.context['page'][1].group
-
-        self.assertEqual(posts_text_0, 'Тестовый пост stand-alone')
-        self.assertEqual(posts_author_0.username, 'ivanoff')
-        self.assertEqual(posts_group_0, None)
-
-        self.assertEqual(posts_text_1, 'Тестовый пост в тестовой группе')
-        self.assertEqual(posts_author_1.username, 'ivanoff')
-        self.assertEqual(posts_group_1.title, 'Тестовая группа')
-
-        self.assertEqual(posts_text_2, 'Тестовый пост юзера-автора')
-        self.assertEqual(posts_author_2.username, 'petroff')
-        self.assertEqual(posts_group_2.title, None)
 
     def test_index_page_shows_correct_context(self):
         """Шаблон index сформирован с правильным контекстом."""
         response = self.authorized_client.get(reverse('index'))
         posts = response.context['page']
         for post in posts:
-            if post.pk == 0:
+            if post.id == PostPagesTests.post1.id:
                 self.assertEqual(post.text, 'Тестовый пост stand-alone')
                 self.assertEqual(post.author.username, 'ivanoff')
                 self.assertEqual(post.group, None)
-            if post.pk == 1:
+            if post.id == PostPagesTests.post2.id:
                 self.assertEqual(post.text, 'Тестовый пост в тестовой группе')
                 self.assertEqual(post.author.username, 'ivanoff')
                 self.assertEqual(post.group.title, 'Тестовая группа')
-            if post.pk == 2:
+            if post.id == PostPagesTests.post3.id:
                 self.assertEqual(post.text, 'Тестовый пост юзера-автора')
                 self.assertEqual(post.author.username, 'petroff')
                 self.assertEqual(post.group, None)
@@ -105,20 +75,24 @@ class PostPagesTests (TestCase):
         response = self.authorized_client.get(
             reverse('group_posts', kwargs={'slug': 'test-slug'})
         )
+
+        context_group = response.context['group']
+        context_page0 = response.context['page'][0]
+
         self.assertEqual(
-            response.context['group'].title, 'Тестовая группа'
+            context_group.title, 'Тестовая группа'
         )
         self.assertEqual(
-            response.context['group'].description, 'Описание тестовой группы'
+            context_group.description, 'Описание тестовой группы'
         )
         self.assertEqual(
-            response.context['page'][0].author.username, 'ivanoff'
+            context_page0.author.username, 'ivanoff'
         )
         self.assertEqual(
-            response.context['page'][0].text, 'Тестовый пост в тестовой группе'
+            context_page0.text, 'Тестовый пост в тестовой группе'
         )
         self.assertEqual(
-            response.context['page'][0].group.title, 'Тестовая группа'
+            context_page0.group.title, 'Тестовая группа'
         )
 
     def test_post_with_no_group_should_not_appear_in_group(self):
@@ -154,7 +128,7 @@ class PostPagesTests (TestCase):
         form_title = "Редактировать запись"
         response = self.authorized_client.get(
             reverse('post_edit',
-                    kwargs={'username': 'petroff', 'post_id': 2})
+                    kwargs={'username': 'petroff', 'post_id': PostPagesTests.post3.id})
         )
         for value, expected in form_fields.items():
             with self.subTest(value=value):
@@ -169,13 +143,16 @@ class PostPagesTests (TestCase):
         )
         self.assertEqual(response.context['author'].username, 'ivanoff')
         self.assertEqual(response.context['viewer'], 'petroff')
-        self.assertEqual(response.context['post_count'], 2)
+
+        # под ivanoff создано 2 поста, cls.post1 и cls.post2
+        self.assertEqual(response.context['paginator'].count, 2)
+
         self.assertIsInstance(response.context['paginator'], Paginator)
 
     def test_post_id_shows_correct_context(self):
         """Шаблон отдельного поста сформирован с правильным контекстом."""
         response = self.authorized_client.get(
-            reverse('post', kwargs={'username': 'ivanoff', 'post_id': 1})
+            reverse('post', kwargs={'username': 'ivanoff', 'post_id': PostPagesTests.post2.id})
         )
         self.assertEqual(response.context['author'].username, 'ivanoff')
         self.assertEqual(response.context['viewer'], 'petroff')

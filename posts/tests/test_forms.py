@@ -23,7 +23,7 @@ class PostCreateFormTests(TestCase):
     def test_create_post(self):
         """Валидная форма создает запись в Post."""
         posts_count = Post.objects.count()
-        form_data = {'text': 'Тестовый текст'}
+        form_data = {'text': 'Тестовый текст', 'group': self.group.id}
         # Отправляем POST-запрос
         response = self.authorized_client.post(
             reverse('new_post'),
@@ -38,11 +38,12 @@ class PostCreateFormTests(TestCase):
         self.assertTrue(
             Post.objects.filter(
                 text='Тестовый текст',
+                group=self.group,
             ).exists()
         )
 
     def test_edit_post(self):
-        """Валидная форма создает запись в Post."""
+        """Валидная форма меняет существующую запись в Post."""
         posts_count = Post.objects.count()
 
         form_data = {

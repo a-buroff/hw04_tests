@@ -29,3 +29,6 @@ coverage.xml
 *.cover 
 .vscode
 *.log
+
+posts/static/
+media/

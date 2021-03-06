@@ -49,7 +49,7 @@ class PostModelTest(TestCase):
         post = PostModelTest.post
         expected_str_post = 'Тестовый текст '
         self.assertEqual(
-            post.__str__(), expected_str_post)
+            str(post), expected_str_post)
 
 
 class GroupModelTest(TestCase):
@@ -93,4 +93,4 @@ class GroupModelTest(TestCase):
         group = GroupModelTest.group
         expected_str_group = 'ПЛП'
         self.assertEqual(
-            group.__str__(), expected_str_group)
+            str(group), expected_str_group)

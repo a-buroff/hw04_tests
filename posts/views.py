@@ -6,10 +6,11 @@ from django.core.paginator import Paginator
 from .models import Post, Group, User
 from .forms import PostForm
 
+POSTS_PER_PAGE = 10
 
 def index(request):
     post_list = Post.objects.all()
-    paginator = Paginator(post_list, 10)
+    paginator = Paginator(post_list, POSTS_PER_PAGE)
     page_number = request.GET.get("page")
     page = paginator.get_page(page_number)
     return render(
@@ -21,7 +22,7 @@ def index(request):
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
     post_list = Post.objects.filter(group=group)
-    paginator = Paginator(post_list, 10)
+    paginator = Paginator(post_list, POSTS_PER_PAGE)
     page_number = request.GET.get("page")
     page = paginator.get_page(page_number)
     return render(
@@ -46,11 +47,12 @@ def new_post(request):
 @login_required
 def post_edit(request, username, post_id):
     author = get_object_or_404(User, username=username)
-    post = Post.objects.get(author=author, pk=post_id)
+    post = get_object_or_404(Post, author__username=username, pk=post_id)
+
     if request.user != author:
         raise Http404('Вы не являетесь автором этого поста')
     if request.method == "POST":
-        form = PostForm(request.POST, instance=post)
+        form = PostForm(request.POST or None, instance=post)
         if form.is_valid():
             edited_post = form.save(commit=False)
             post.text = edited_post.text
@@ -66,20 +68,21 @@ def post_edit(request, username, post_id):
 def profile(request, username):
     author = get_object_or_404(User, username=username)
     viewer = request.user.username
-    post_list = Post.objects.filter(author=author)
-    post_count = Post.objects.filter(author=author).count()
-    paginator = Paginator(post_list, 10)
+    post_list = Post.objects.filter(author__username=username)
+    paginator = Paginator(post_list, POSTS_PER_PAGE)
     page_number = request.GET.get("page")
     page = paginator.get_page(page_number)
     context = {"author": author, "viewer": viewer,
-               "page": page, "post_count": post_count, "paginator": paginator}
+               "page": page, "paginator": paginator}
     return render(request, "profile.html", context)
 
 
 def post_view(request, username, post_id):
     viewer = request.user.username
     author = get_object_or_404(User, username=username)
-    post = Post.objects.filter(author=author).get(pk=post_id)
+    post = Post.objects.filter(author__username=username).get(pk=post_id)
+    post_list = Post.objects.filter(author__username=username)
+    paginator = Paginator(post_list, POSTS_PER_PAGE)
     context = {"author": author, "viewer": viewer,
-               "post": post, "post_id": post_id}
+               "post": post, "post_id": post_id, "paginator": paginator}
     return render(request, "post.html", context)
