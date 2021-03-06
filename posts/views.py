@@ -8,6 +8,7 @@ from .forms import PostForm
 
 POSTS_PER_PAGE = 10
 
+
 def index(request):
     post_list = Post.objects.all()
     paginator = Paginator(post_list, POSTS_PER_PAGE)
