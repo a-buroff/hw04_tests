@@ -55,19 +55,29 @@ class PostPagesTests (TestCase):
         """Шаблон index сформирован с правильным контекстом."""
         response = self.authorized_client.get(reverse('index'))
         posts = response.context['page']
+        content = {
+            PostPagesTests.post1.id: {
+                'text': PostPagesTests.post1.text,
+                'username': PostPagesTests.post1.author.username,
+                'group': PostPagesTests.post1.group,
+            },
+            PostPagesTests.post2.id: {
+                'text': PostPagesTests.post2.text,
+                'username': PostPagesTests.post2.author.username,
+                'group': PostPagesTests.post2.group,
+            },
+            PostPagesTests.post3.id: {
+                'text': PostPagesTests.post3.text,
+                'username': PostPagesTests.post3.author.username,
+                'group': PostPagesTests.post3.group,
+            },
+        }
         for post in posts:
-            if post.id == PostPagesTests.post1.id:
-                self.assertEqual(post.text, 'Тестовый пост stand-alone')
-                self.assertEqual(post.author.username, 'ivanoff')
-                self.assertEqual(post.group, None)
-            if post.id == PostPagesTests.post2.id:
-                self.assertEqual(post.text, 'Тестовый пост в тестовой группе')
-                self.assertEqual(post.author.username, 'ivanoff')
-                self.assertEqual(post.group.title, 'Тестовая группа')
-            if post.id == PostPagesTests.post3.id:
-                self.assertEqual(post.text, 'Тестовый пост юзера-автора')
-                self.assertEqual(post.author.username, 'petroff')
-                self.assertEqual(post.group, None)
+            self.assertEqual(post.text, content[post.id]['text'])
+            self.assertEqual(
+                post.author.username, content[post.id]['username']
+            )
+            self.assertEqual(post.group, content[post.id]['group'])
 
     def test_group_posts_page_shows_correct_context(self):
         """Шаблон group_posts сформирован с правильным контекстом."""
@@ -127,7 +137,10 @@ class PostPagesTests (TestCase):
         form_title = "Редактировать запись"
         response = self.authorized_client.get(
             reverse('post_edit',
-                    kwargs={'username': 'petroff', 'post_id': PostPagesTests.post3.id})
+                    kwargs={
+                        'username': 'petroff',
+                        'post_id': PostPagesTests.post3.id
+                    })
         )
         for value, expected in form_fields.items():
             with self.subTest(value=value):
@@ -151,7 +164,11 @@ class PostPagesTests (TestCase):
     def test_post_id_shows_correct_context(self):
         """Шаблон отдельного поста сформирован с правильным контекстом."""
         response = self.authorized_client.get(
-            reverse('post', kwargs={'username': 'ivanoff', 'post_id': PostPagesTests.post2.id})
+            reverse('post',
+                    kwargs={
+                        'username': 'ivanoff',
+                        'post_id': PostPagesTests.post2.id
+                    })
         )
         self.assertEqual(response.context['author'].username, 'ivanoff')
         self.assertEqual(response.context['viewer'], 'petroff')

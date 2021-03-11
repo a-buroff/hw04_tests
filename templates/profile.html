@@ -3,39 +3,17 @@
 {% block content %}
 <main role="main" class="container">
     <div class="row">
-            {% include "author_card.html" %}
+            {% include "inclusions/author_card.html" with author=author paginator=paginator %}
 
             <div class="col-md-9">                
                 {% for post in page %}
                 <!-- Начало блока с отдельным постом --> 
-                    <div class="card mb-3 mt-1 shadow-sm">
-                            <div class="card-body">
-                                    <p class="card-text">
-                                            <!-- Ссылка на страницу автора в атрибуте href; username автора в тексте ссылки -->
-                                            <a href={% url 'profile' username=author.username %}><strong class="d-block text-gray-dark">@{{ author.username }}</strong></a>
-                                            <!-- Текст поста -->
-                                            {{ post.text|linebreaksbr }} 
-                                    </p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                            <div class="btn-group ">
-                                                    <!-- Ссылка на страницу записи в атрибуте href-->
-                                                    <a class="btn btn-sm text-muted" href={%url 'post' username=author.username post_id=post.id %} role="button">Добавить комментарий</a>
-                                                    <!-- Ссылка на редактирование, показывается только автору записи -->
-                                                    {% if author.username == viewer %}
-                                                    <a class="btn btn-sm text-muted" href={%url 'post_edit' username=author.username post_id=post.id %} role="button">Редактировать</a>
-                                                    {% endif %}
-                                            </div>
-                                            <!-- Дата публикации  -->                                      
-                                            <small class="text-muted">{{ post.pub_date|date:"d-m-Y H:i" }}</small>
-                                    </div>
-                            </div>
-                    </div>
+                {% include "inclusions/post_card.html" with author=author viewer=viewer post=post post_id=post.id %}
                 <!-- Конец блока с отдельным постом --> 
-                
                 <!-- Остальные посты -->  
                 {% endfor %}
                 <!-- Здесь постраничная навигация паджинатора -->
-                {% include "paginator.html" %}
+                {% include "inclusions/paginator.html" with paginator=paginator %}
 
      </div>
     </div>

@@ -47,10 +47,8 @@ def new_post(request):
 
 @login_required
 def post_edit(request, username, post_id):
-    author = get_object_or_404(User, username=username)
     post = get_object_or_404(Post, author__username=username, pk=post_id)
-
-    if request.user != author:
+    if request.user.username != username:
         raise Http404('Вы не являетесь автором этого поста')
     if request.method == "POST":
         form = PostForm(request.POST or None, instance=post)
@@ -69,7 +67,7 @@ def post_edit(request, username, post_id):
 def profile(request, username):
     author = get_object_or_404(User, username=username)
     viewer = request.user.username
-    post_list = Post.objects.filter(author__username=username)
+    post_list = Post.objects.filter(author=author)
     paginator = Paginator(post_list, POSTS_PER_PAGE)
     page_number = request.GET.get("page")
     page = paginator.get_page(page_number)
@@ -81,7 +79,7 @@ def profile(request, username):
 def post_view(request, username, post_id):
     viewer = request.user.username
     author = get_object_or_404(User, username=username)
-    post = Post.objects.filter(author__username=username).get(pk=post_id)
+    post = get_object_or_404(Post, author=author, pk=post_id)
     post_list = Post.objects.filter(author__username=username)
     paginator = Paginator(post_list, POSTS_PER_PAGE)
     context = {"author": author, "viewer": viewer,
