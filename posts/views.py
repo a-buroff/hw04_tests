@@ -53,10 +53,7 @@ def post_edit(request, username, post_id):
     if request.method == "POST":
         form = PostForm(request.POST or None, instance=post)
         if form.is_valid():
-            edited_post = form.save(commit=False)
-            post.text = edited_post.text
-            post.group = edited_post.group
-            post.save()
+            form.save()
             return redirect("post", post.author, post.id)
     form = PostForm(instance=post)
     form_title = "Редактировать запись"
@@ -67,7 +64,7 @@ def post_edit(request, username, post_id):
 def profile(request, username):
     author = get_object_or_404(User, username=username)
     viewer = request.user.username
-    post_list = Post.objects.filter(author=author)
+    post_list = author.posts.all()
     paginator = Paginator(post_list, POSTS_PER_PAGE)
     page_number = request.GET.get("page")
     page = paginator.get_page(page_number)
@@ -80,7 +77,7 @@ def post_view(request, username, post_id):
     viewer = request.user.username
     author = get_object_or_404(User, username=username)
     post = get_object_or_404(Post, author=author, pk=post_id)
-    post_list = Post.objects.filter(author__username=username)
+    post_list = author.posts.all()
     paginator = Paginator(post_list, POSTS_PER_PAGE)
     context = {"author": author, "viewer": viewer,
                "post": post, "post_id": post_id, "paginator": paginator}
